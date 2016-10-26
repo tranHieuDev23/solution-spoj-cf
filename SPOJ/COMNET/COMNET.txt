@@ -1,0 +1,29 @@
+Link (Vietnamese): http://vn.spoj.com/problems/COMNET/
+
+The Z Company has N branches, each of which has its own server. To communicate between branches, it bought M transmit lines to connect
+the N servers and form a network. There is no more than one line between any pair of servers. The i-th line connects server ui and vi,
+with a cost of wi. There's always a way to transmit information from a server to another, using one or more transmit lines (1).
+
+A transmit line is called not potential if: 
+
++ Its removal does not affect the (1) property of the network, and
++ It does not belong to any connected network of N server and N - 1 lines with the smallest cost.
+
+The costs of some transmit lines are going to be changed in the upcoming time. Check that whether a specified line will become not
+potential if the change happens.
+
+Input
+
+The first line contains T - the number of test cases.  Each test case follows the following format:
+
+The first line contains three positive integers N, M, Q (Q <= 30).
+The i-th line of the next M ones contains ui, vi, wi (ui ≠ vi, wi < 10 ^ 9).
+The next Q lines describe the queries:
+First, there is an integer k - the specified line needed checking.
+Next is an integer s (s <= 100) - the number of lines changed.
+Finally there are s pairs of integers t and p - the cost of the t-th line is now p.
+The changes affect only the current query only and do not retain over others.
+
+Output
+
+For each query, print "YES" or "NO" on a line - the answer to the query.
