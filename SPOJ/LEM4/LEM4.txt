@@ -1,0 +1,24 @@
+Link (Vietnamese): http://vn.spoj.com/problems/LEM4/
+
+When she was young, Sherry used to play a game called "White Black" with her father.
+
+He had a long piece of paper with the size of 1 * n, which was separated into n small squares. Initially, every square was white.
+Sherry's father then colored the square from position L to R with the same color (black or white). Sherry had to find the longest 
+streak of consecutive white squares. Help her find the answer!
+
+Input
+
+1st line: N (1 <= N <= 10000)
+
+2nd line: M (1 <= M <= 100000)
+
+The next M lines may be in one of these three formats
+
+1 L R (1 <= L <= R <= N): Color squares from L to R with the color white.
+
+2 L R (1 <= L <= R <= N): Color squares from L to R with the color black.
+
+3: Find the longest streak of consecutive white squares
+
+Output
+For each line of the third format, print a single line contain an integer - the answer to the query.
