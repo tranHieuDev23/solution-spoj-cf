@@ -12,20 +12,19 @@
 using namespace std;
 int n, m, a[mn];
 
-void add(long long& a, long long b)
+void add(int& a, int b)
 {
-    a = (a + b) % maxC;
+    a = (0ll + a + b) % maxC;
 }
 
-void mul(long long& a, long long b)
+void mul(int& a, int b)
 {
-    a = (a * b) % maxC;
+    a = (1ll * a * b) % maxC;
 }
 
 struct interval
 {
-    int l, r;
-    long long ad, ml;
+    int l, r, ad, ml;
     interval* lc;
     interval* rc;
 
@@ -85,7 +84,7 @@ struct interval
         rc -> updateMul(x, y, v);
     }
 
-    long long get(int x)
+    int get(int x)
     {
         if (l == r)
             return ad;
