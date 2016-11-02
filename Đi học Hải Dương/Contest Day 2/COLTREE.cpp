@@ -10,106 +10,30 @@
 #define mid ((l + r) >> 1)
 
 using namespace std;
-int n, m, r, sz[mn], spe[mn], p[mn];
-int beg[mn], belong[mn], pos[mn], num = 0, rig = 0, cur = 0;
+int n, m, r, belong[mn], co[mn], pos[mn], fin[mn];
+int ans[mn], rig = 0, dif = 0;
+map<int, int> num;
+pair< pair<int, int> , int > q[mn];
 vector<int> g[mn];
-pair<int, int> co[mn];
 
-struct interval
+bool com(pair< pair<int, int> , int > a, pair< pair<int, int> , int > b)
 {
-    int l, r, mark, val;
-    interval* lc;
-    interval* rc;
+    if (belong[a.F.S] != belong[b.F.S])
+        return belong[a.F.S] < belong[b.F.S];
+    return a.F.F < b.F.F;
+}
 
-    interval(int l = 0, int r = 0): l(l), r(r)
-    {
-        mark = val = 0;
-        if (l == r)
-            lc = rc = NULL;
-        else
-        {
-            lc = new interval(l, mid);
-            rc = new interval(mid + 1, r);
-        }
-    }
-
-    void push()
-    {
-        lc -> val += val;
-        rc -> val += val;
-        val = 0;
-    }
-
-    void update(int x, int y)
-    {
-        if (l > y || r < x || mark == cur)
-            return;
-        if (x <= l && r <= y)
-        {
-            mark = cur;
-            val ++;
-            return;
-        }
-        push();
-        lc -> update(x, y);
-        rc -> update(x, y);
-    }
-
-    int get(int x)
-    {
-        if (l == r)
-            return val;
-        push();
-        if (x <= mid)
-            return lc -> get(x);
-        return rc -> get(x);
-    }
-} t;
-
-void dfs(int u)
+void dfs(int u, int p)
 {
-    sz[u] = 1, spe[u] = 0;
+    pos[u] = ++ rig;
     FOR(i, 0, int(g[u].size()) - 1)
     {
         int v = g[u][i];
-        if (v == p[u])
+        if (v == p)
             continue;
-        p[v] = u;
-        dfs(v);
-        if (sz[v] > sz[spe[u]])
-            spe[u] = v;
-        sz[u] += sz[v];
+        dfs(v, u);
     }
-}
-
-void hld(int u)
-{
-    if (beg[num] == -1)
-        beg[num] = u;
-    belong[u] = num;
-    pos[u] = ++ rig;
-    if (spe[u])
-    {
-        hld(spe[u]);
-        FOR(i, 0, int(g[u].size()) - 1)
-        {
-            int v = g[u][i];
-            if (v == spe[u] || v == p[u])
-                continue;
-            beg[++ num] = -1;
-            hld(v);
-        }
-    }
-}
-
-void update(int a)
-{
-    while(belong[a] != belong[r])
-    {
-        t.update(pos[beg[belong[a]]], pos[a]);
-        a = p[beg[belong[a]]];
-    }
-    t.update(pos[r], pos[a]);
+    fin[u] = rig;
 }
 
 void setup()
@@ -123,27 +47,47 @@ void setup()
         g[v].pb(u);
     }
     FOR(i, 1, n)
-        cin >> co[i].F, co[i].S = i;
-    beg[num] = -1;
+        cin >> co[i];
+}
+
+void add(int val)
+{
+    dif += (++ num[val] == 1);
+}
+
+void del(int val)
+{
+    dif -= (-- num[val] == 0);
 }
 
 void xuly()
 {
-    dfs(r);
-    hld(r);
-    t = interval(1, n);
-    sort(co + 1, co + n + 1);
+    int x = sqrt(n);
     FOR(i, 1, n)
-    {
-        cur += (co[i].F != co[i - 1].F);
-        update(co[i].S);
-    }
-    int u;
+        belong[i] = belong[i - 1] + (i % x == 1);
+    dfs(r, 0);
     FOR(i, 1, m)
     {
-        cin >> u;
-        cout << t.get(pos[u]) << '\n';
+        cin >> x;
+        q[i] = mp(mp(pos[x], fin[x]), i);
     }
+    sort(q + 1, q + m + 1, com);
+    int l = 0, r = 0;
+    FOR(i, 1, m)
+    {
+        int lef = q[i].F.F, rig = q[i].F.S;
+        while(r < rig)
+            add(co[++ r]);
+        while(r > rig)
+            del(co[r --]);
+        while(l < lef)
+            del(co[l ++]);
+        while(l > lef)
+            add(co[-- l]);
+        ans[q[i].S] = dif;
+    }
+    FOR(i, 1, m)
+        cout << ans[i] << '\n';
 }
 
 int main()
