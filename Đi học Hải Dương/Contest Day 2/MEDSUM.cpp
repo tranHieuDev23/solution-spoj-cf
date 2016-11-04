@@ -1,69 +1,72 @@
 #include <bits/stdc++.h>
 #define FOR(i, j, k) for (int i = j; i <= k; i ++)
 #define FORD(i, j, k) for (int i = j; i >= k; i --)
-#define mn 4000006
-#define maxC 1000000007
+#define mn 201
+#define mn2 20004
+#define maxC 1000000000
 #define pb push_back
 #define F first
 #define S second
 #define mp make_pair
 
 using namespace std;
-int n, l, rig = 0, a[201][20001], pos[201][20001], r[201];
-int val[mn];
+int n, l, mem = 0, a[mn][mn2], pos[mn][mn2], r[mn];
+int val[mn * mn2];
 priority_queue< pair<int, int> > p;
 
 void setup()
 {
     cin >> n >> l;
     FOR(i, 1, n)
-    FOR(j, 1, l)
-        cin >> a[i][j];
+    {
+        FOR(j, 1, l)
+            cin >> a[i][j];
+        p.push(mp(- a[i][1], i));
+    }
 }
 
 void merging()
 {
-    FOR(i, 1, n)
-        p.push(mp(- a[i][1], i)), r[i] = 1;
     while(!p.empty())
     {
-        int w = - p.top().F;
         int u = p.top().S;
+        int w = - p.top().F;
         p.pop();
-        val[++ rig] = w;
-        pos[u][r[u]] = rig;
-        if (++ r[u] <= l)
-            p.push(mp(- a[u][r[u]], u));
+        pos[u][++ r[u]] = ++ mem;
+        val[mem] = w;
+        if (r[u] == l)
+            continue;
+        p.push(mp(- a[u][r[u] + 1], u));
     }
 }
 
-int notGreat(int id, int x)
+int getNum(int x, int u)
 {
-    int le = 0, ri = l + 1;
-    while(ri - le > 1)
+    int lef = 0, rig = l + 1;
+    while(rig - lef > 1)
     {
-        int mi = ((ri + le) >> 1);
-        if (pos[id][mi] <= x)
-            le = mi;
+        int mid = ((rig + lef) >> 1);
+        if (pos[u][mid] <= x)
+            lef = mid;
         else
-            ri = mi;
+            rig = mid;
     }
-    return le;
+    return lef;
 }
 
-int med(int x, int y)
+int getAns(int x, int y)
 {
-    int le = 0, ri = rig;
-    while(ri - le > 1)
+    int lef = 0, rig = mem;
+    while(rig - lef > 1)
     {
-        int mi = ((ri + le) >> 1);
-        int in = notGreat(x, mi) + notGreat(y, mi);
-        if (in < l)
-            le = mi;
+        int mid = ((lef + rig) >> 1);
+        int num = getNum(mid, x) + getNum(mid, y);
+        if (num < l)
+            lef = mid;
         else
-            ri = mi;
+            rig = mid;
     }
-    return val[ri];
+    return val[rig];
 }
 
 void xuly()
@@ -72,7 +75,7 @@ void xuly()
     long long ans = 0;
     FOR(i, 1, n - 1)
     FOR(j, i + 1, n)
-        ans += med(i, j);
+        ans = (ans + getAns(i, j)) % maxC;
     cout << ans;
 }
 
