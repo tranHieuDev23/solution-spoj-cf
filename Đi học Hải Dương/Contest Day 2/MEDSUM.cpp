@@ -10,8 +10,7 @@
 #define mp make_pair
 
 using namespace std;
-int n, l, mem = 0, a[mn][mn2], r[mn], num[mn], numNum[mn2];
-int val[mn * mn2], id[mn * mn2];
+int n, l, a[mn][mn2], r[mn], num[mn], numNum[mn2];
 priority_queue< pair<int, int> > p;
 
 void setup()
@@ -25,37 +24,24 @@ void setup()
     }
 }
 
-void merging()
+void xuly()
 {
+    long long ans = 0;
+    numNum[0] = n;
     while(!p.empty())
     {
         int u = p.top().S;
         int w = - p.top().F;
         p.pop();
-        r[u] ++, mem ++;
-        val[mem] = w;
-        id[mem] = u;
-        if (r[u] == l)
-            continue;
-        p.push(mp(- a[u][r[u] + 1], u));
-    }
-}
-
-void xuly()
-{
-    merging();
-    long long ans = 0;
-    numNum[0] = n;
-    FOR(i, 1, mem)
-    {
-        int u = id[i];
+        r[u] ++;
         numNum[num[u]] --;
         num[u] ++;
         numNum[num[u]] ++;
-        long long good = numNum[l - num[u]];
-        if (num[u] == l - num[u])
-            good --;
-        ans += good * val[i];
+        long long good = numNum[l - num[u]] - (num[u] == l - num[u]);
+        ans += good * w;
+        if (r[u] == l)
+            continue;
+        p.push(mp(- a[u][r[u] + 1], u));
     }
     ans = ((ans % maxC) + maxC) % maxC;
     printf("%I64d", ans);
