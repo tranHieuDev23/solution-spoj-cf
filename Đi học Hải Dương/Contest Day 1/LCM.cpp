@@ -2,7 +2,7 @@
 #define FOR(i, j, k) for (int i = j; i <= k; i ++)
 #define FORD(i, j, k) for (int i = j; i >= k; i --)
 #define mn 1000006
-#define sqrtmn 1003
+#define sqtmn 1003
 #define mn2 100005
 #define maxC 1000000007
 #define pb push_back
@@ -11,88 +11,74 @@
 #define mp make_pair
 
 using namespace std;
-vector<int> allP, fac[mn2];
-bool notPrime[sqrtmn];
-int n, num[mn], l, ans, wrong;
+int n, a[mn2], big[mn], fac[mn][8], r[mn];
+int num[mn], wrong, l, ans;
 
 void prepare()
 {
-    notPrime[0] = notPrime[1] = true;
-    FOR(i, 2, sqrtmn - 1)
-    if (!notPrime[i])
-    {
-        for(int t = (i << 1); t < sqrtmn; t += i)
-            notPrime[t] = true;
-        allP.pb(i);
-    }
+    FOR(i, 2, sqtmn - 1)
+    if (!big[i])
+    for(int t = i; t < mn; t += i)
+        big[t] = i;
 }
 
-void factoring(int x, int id)
+void factor(int x)
 {
-    int sqt = sqrt(x);
-    fac[id].clear();
-    FOR(i, 0, int(allP.size()) - 1)
+    if (r[x])
+        return;
+    int cur = x;
+    while(big[cur])
     {
-        if (allP[i] > sqt)
-            break;
-        if (x % allP[i] == 0)
-        {
-            fac[id].pb(allP[i]);
-            while(x % allP[i] == 0)
-                x /= allP[i];
-            sqt = sqrt(x);
-        }
+        if (big[cur] != fac[x][r[x]])
+            fac[x][++ r[x]] = big[cur];
+        cur /= big[cur];
     }
-    if (x != 1)
-        fac[id].pb(x);
+    if (cur != 1)
+        fac[x][++ r[x]] = cur;
 }
 
 void add(int id)
 {
-    FOR(i, 0, int(fac[id].size()) - 1)
-        wrong += (++ num[fac[id][i]] == 2);
+    FOR(i, 1, r[a[id]])
+        wrong += (++ num[fac[a[id]][i]] == 2);
 }
 
-void rem(int id)
+void del(int id)
 {
-    FOR(i, 0, int(fac[id].size()) - 1)
-        wrong -= (-- num[fac[id][i]] == 1);
-}
-
-void deal(int r)
-{
-    int x; cin >> x;
-    factoring(x, r);
-    add(r);
-    while(wrong)
-        rem(l ++);
-    ans = max(ans, r - l + 1);
+    FOR(i, 1, r[a[id]])
+        wrong -= (-- num[fac[a[id]][i]] == 1);
 }
 
 void setup()
 {
-    cin >> n;
-    l = ans = 1;
+    scanf("%d", &n);
+    l = 1;
+    ans = 1;
     wrong = 0;
-    FOR(i, 1, n)
-        deal(i);
+    FOR(r, 1, n)
+    {
+        scanf("%d", &a[r]);
+        factor(a[r]);
+        add(r);
+        while(wrong)
+            del(l ++);
+        ans = max(ans, r - l + 1);
+    }
     while(l <= n)
-        rem(l ++);
-    if (ans > 1)
-        cout << ans << '\n';
+        del(l ++);
+    if (ans == 1)
+        printf("-1\n");
     else
-        cout << "-1\n";
+        printf("%d\n", ans);
+
 }
 
 int main()
 {
-    ios_base::sync_with_stdio(0);
-    cin.tie(NULL);
-    cout.tie(NULL);
     freopen("LCM.INP", "r", stdin);
     freopen("LCM.OUT", "w", stdout);
     prepare();
-    int t; cin >> t;
+    int t; scanf("%d", &t);
     FOR(i, 1, t)
         setup ();
     return 0;
