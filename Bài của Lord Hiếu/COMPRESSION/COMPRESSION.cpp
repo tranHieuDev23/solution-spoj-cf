@@ -11,36 +11,41 @@
 using namespace std;
 int n;
 string s;
-long long ans;
+long long ans = 0;
 
 struct trie
 {
-    char c;
     int depth;
+    bool endString, selected;
+    char conres;
     long long dp;
-    bool selected, leaf;
-    trie* p;
+    trie* parent;
     trie* child[26];
 
-    trie(char c = ' ', trie* p = NULL): c(c), p(p)
+    trie(char conres = ' ', trie* parent = NULL): conres(conres), parent(parent)
     {
-        depth = (p == NULL? 0 : p -> depth + 1);
+        depth = (parent == NULL? 0 : parent -> depth + 1);
+        endString = selected = false;
         dp = penalty(depth);
-        selected = leaf = true;
         FOR(i, 0, 25)
             child[i] = NULL;
     }
 
     long long dfs()
     {
-        if (leaf)
+        if (endString)
+        {
+            selected = true;
             return dp;
+        }
         long long sumDp = 0;
         FOR(i, 0, 25)
         if (child[i] != NULL)
             sumDp += child[i] -> dfs();
         if (sumDp < dp)
-            dp = sumDp, selected = false;
+            dp = sumDp;
+        else
+            selected = true;
         return dp;
     }
 } t;
@@ -64,15 +69,15 @@ void reclaim(trie* p)
     s.resize(p -> depth);
     FORD(i, int(s.size()) - 1, 0)
     {
-        s[i] = p -> c;
-        p = p -> p;
+        s[i] = p -> conres;
+        p = p -> parent;
     }
 }
 
 void setup()
 {
     cin >> n;
-    FOR(i, 1, n)
+    while(n --)
     {
         cin >> s;
         int sz = s.size();
@@ -80,17 +85,22 @@ void setup()
         FOR(i, 0, sz - 1)
         {
             int z = s[i] - 'a';
-            if (p -> child[z] == NULL)
-                p -> child[z] = new trie(s[i], p), p -> leaf = false;
+            if(p -> child[z] == NULL)
+                p -> child[z] = new trie(s[i], p);
             p = p -> child[z];
         }
+        p -> endString = true;
     }
 }
 
 void xuly()
 {
-    ans = t.dfs();
-    findL1(&t);
+    FOR(i, 0, 25)
+    if (t.child[i] != NULL)
+    {
+        ans += t.child[i] -> dfs();
+        findL1(t.child[i]);
+    }
     cout << ans << '\n' << l1.size() << '\n';
     FOR(i, 0, int(l1.size()) - 1)
     {
