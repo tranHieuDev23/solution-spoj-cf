@@ -5,7 +5,6 @@
 #define mn2 100
 #define maxC 1000000007
 #define pb push_back
-#define reset(x) memset(x, 0, sizeof(x))
 
 using namespace std;
 string t, p;
@@ -41,77 +40,61 @@ void prepare()
 bool check(int id, int val)
 {
     int x = valR[val];
-    if (!x)
-        return !valB[P[id + 1]];
-    return x == P[id + 1];
+    int y = valB[P[id + 1]];
+    if (x && x != P[id + 1])
+        return false;
+    if (y && y != val)
+        return false;
+    return true;
+}
+
+void lowerId(int& id, int (&mang)[mn][mn2], int pos, bool includePos)
+{
+    id = f[id];
+    int low = pos - id + includePos;
+    memset(valR, 0, sizeof(valR));
+    memset(valB, 0, sizeof(valB));
+    FOR(i, 1, 94)
+    {
+        int x = mang[pos - (!includePos)][i];
+        if (x < low)
+            continue;
+        int y = x - low + 1;
+        valR[i] = P[y];
+        valB[P[y]] = i;
+    }
 }
 
 void buildF()
 {
     f[0] = -1, f[1] = 0;
     int id = 0;
-    FOR(u, 2, m)
+    FOR(i, 2, m)
     {
-        while(!check(id, P[u]))
-        {
-            id = f[id];
-            reset(valR); reset(valB);
-            int low = u - id;
-            FOR(i, 1, 94)
-            {
-                int x = preP[u - 1][i];
-                if (x < low)
-                    continue;
-                int y = x - low + 1;
-                valR[i] = P[y];
-                valB[P[y]] = i;
-            }
-        }
-        f[u] = ++ id;
-        valR[P[u]] = P[id];
-        valB[P[id]] = P[u];
+        while(!check(id, P[i]))
+            lowerId(id, preP, i, false);
+        f[i] = ++ id;
+        valR[P[i]] = P[id];
+        valB[P[id]] = P[i];
     }
 }
 
 void findOccurance()
 {
-    reset(valR); reset(valB);
+    memset(valR, 0, sizeof(valR));
+    memset(valB, 0, sizeof(valB));
     int id = 0;
-    FOR(u, 1, n)
+    FOR(i, 1, n)
     {
-        while(!check(id, T[u]))
-        {
-            id = f[id];
-            reset(valR); reset(valB);
-            int low = u - id;
-            FOR(i, 1, 94)
-            {
-                int x = preT[u - 1][i];
-                if (x < low)
-                    continue;
-                int y = x - low + 1;
-                valR[i] = P[y];
-                valB[P[y]] = i;
-            }
-        }
+        while(!check(id, T[i]))
+            lowerId(id, preT, i, false);
         if (++ id == m)
         {
-            ans.pb(u - m + 1);
-            id = f[id];
-            reset(valR); reset(valB);
-            int low = u - id + 1;
-            FOR(i, 1, 94)
-            {
-                int x = preT[u][i];
-                if (x < low)
-                    continue;
-                int y = x - low + 1;
-                valR[i] = P[y];
-                valB[P[y]] = i;
-            }
+            ans.pb(i - m + 1);
+            lowerId(id, preT, i, true);
         }
-        valR[T[u]] = P[id];
-        valB[P[id]] = T[u];
+        valR[T[i]] = P[id];
+        valB[P[id]] = T[i];
     }
 }
 
