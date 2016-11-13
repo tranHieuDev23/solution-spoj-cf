@@ -9,40 +9,33 @@
 #define mp make_pair
 
 using namespace std;
-int n, a[mn], l = 1, ans = 0;
+int n, a[mn], ans = 0, l = 0;
+bool ok[mn];
 
-bool inU(int x)
+bool good(int x)
 {
-    int l = 1, r = maxC;
-    while(r - l > 1)
-    {
-        int g = ((l + r) >> 1);
-        if (((g + 1) * g / 2) <= x)
-            l = g;
-        else
-            r = g;
-    }
-    return (((l + 1) * l) / 2) == x;
+    int k = sqrt(x << 1);
+    return (x << 1) == (k + 1) * k;
 }
 
 void setup()
 {
     cin >> n;
     FOR(i, 1, n)
+    {
         cin >> a[i];
+        ok[i] = good(a[i]);
+    }
 }
 
 void xuly()
 {
-    FOR(r, 1, n + 1)
+    FOR(r, 1, n)
+    if (ok[r])
     {
-        bool XinU = inU(a[r]);
-        if (!XinU || a[r] < a[r - 1])
-            ans = max(ans, r - l);
-        if (!XinU)
-            l = r + 1;
-        else if (a[r] < a[r - 1])
+        if (!ok[r - 1] || a[r - 1] > a[r])
             l = r;
+        ans = max(ans, r - l + 1);
     }
     cout << ans;
 }
