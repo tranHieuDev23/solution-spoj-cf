@@ -12,81 +12,105 @@
 using namespace std;
 int m, n, q;
 char c[mn][mn];
-int area = 0, best = 0;
+int area, best;
 
-int belong[mn][mn];
+int belong[mn][mn], co;
 int addX[] = {0, 0, 1, -1};
 int addY[] = {1, -1, 0, 0};
-vector<int> sizP;
-vector<char> charArea;
-vector< pair<int, int> > startP, lastP;
-pair<int, int> nextP[mn][mn];
-
-vector<int> startV, lastV, root;
-vector<int> val, nextV, mark;
 bool done[mn][mn];
+pair<int, int> nextP[mn][mn];
+vector<int> val, nextV;
 
-int temp[mn2], co, r;
-
-void setup()
+struct region
 {
-    cin >> m >> n;
-    FOR(i, 1, m)
-    FOR(j, 1, n)
-        cin >> c[i][j], belong[i][j] = -1;
-    cin >> q;
+    pair<int, int> startP, lastP;
+    int sizeP, root, startV, lastV, mark;
+    char character;
+
+    region(char character = 0): character(character)
+    {
+        startP = lastP = mp(0, 0);
+        sizeP = 0;
+        root = startV = lastV = mark = -1;
+    }
+
+    void addPoint(int x, int y)
+    {
+        pair<int, int> xy = mp(x, y);
+        pair<int, int> z = lastP;
+        if (!z.F)
+            startP = xy;
+        else
+            nextP[z.F][z.S] = xy;
+        nextP[x][y] = mp(0, 0);
+        lastP = xy;
+        sizeP ++;
+    }
+
+    void addEdge(int v)
+    {
+        int cur = val.size();
+        val.pb(v);
+        int pre = lastV;
+        if (pre == -1)
+            startV = cur;
+        else
+            nextV[pre] = cur;
+        lastV = cur;
+        nextV.pb(-1);
+    }
+};
+vector<region> reg;
+
+int getRoot(int x)
+{
+    if (reg[x].root == -1)
+        return x;
+    return (reg[x].root = getRoot(reg[x].root));
 }
 
-void prepareArea(char& c)
+void merging(int a, int b)
 {
-    root.pb(area ++);
-    charArea.pb(c);
-    sizP.pb(0);
-    startP.pb(mp(0, 0)), lastP.pb(mp(0, 0));
-    startV.pb(-1), lastV.pb(-1);
-    mark.pb(-1);
+    if (a == b)
+        return;
+    if (reg[a].sizeP < reg[b].sizeP)
+        swap(a, b);
+    reg[b].root = a;
+
+    for(pair<int, int> x = reg[b].startP; x.F; x = nextP[x.F][x.S])
+        belong[x.F][x.S] = a;
+    pair<int, int> p1 = reg[a].lastP;
+    pair<int, int> p2 = reg[b].startP;
+    nextP[p1.F][p1.S] = p2;
+    reg[a].lastP = reg[b].lastP;
+    reg[a].sizeP += reg[b].sizeP;
+
+    if (reg[b].startV != -1)
+    {
+        int v1 = reg[a].lastV;
+        int v2 = reg[b].startV;
+        if (v1 == -1)
+            reg[a].startV = v2;
+        else
+            nextV[v1] = v2;
+        reg[a].lastV = reg[b].lastV;
+    }
 }
 
-void addPoint(int x, int y, int u)
+void dfsAddPoint(int x, int y)
 {
-    belong[x][y] = u;
-    pair<int, int> xy = mp(x, y);
-    pair<int, int> z = lastP[u];
-    if (!z.F)
-        startP[u] = lastP[u] = xy;
-    else
-        nextP[z.F][z.S] = xy;
-    lastP[u] = xy;
-    nextP[x][y] = mp(0, 0);
-    sizP[u] ++;
-}
-
-void dfs(int x, int y)
-{
-    addPoint(x, y, area - 1);
+    belong[x][y] = area - 1;
+    reg[area - 1].addPoint(x, y);
     FOR(i, 0, 3)
     {
         int _x = x + addX[i];
         int _y = y + addY[i];
         if (c[_x][_y] == c[x][y] && belong[_x][_y] == -1)
-            dfs(_x, _y);
+            dfsAddPoint(_x, _y);
     }
 }
 
-void addEdge(int u, int v)
-{
-    int cur = val.size();
-    val.pb(v);
-    nextV.pb(-1);
-    int pre = lastV[u];
-    if (pre == -1)
-        startV[u] = lastV[u] = cur;
-    else
-        nextV[pre] = cur;
-    lastV[u] = cur;
-}
-
-void dfs(int x, int y, int u)
+void dfsAddEdge(int x, int y, int u)
 {
     done[x][y] = true;
     FOR(i, 0, 3)
@@ -98,12 +122,21 @@ void dfs(int x, int y, int u)
         if (c[_x][_y] != c[x][y])
         {
             int v = belong[_x][_y];
-            if (mark[v] != u)
-                mark[v] = u, addEdge(u, v);
+            if (reg[v].mark != u)
+                reg[v].mark = u, reg[u].addEdge(v);
         }
         else if (!done[_x][_y])
-            dfs(_x, _y, u);
+            dfsAddEdge(_x, _y, u);
     }
+}
+
+void setup()
+{
+    cin >> m >> n;
+    FOR(i, 1, m)
+    FOR(j, 1, n)
+        cin >> c[i][j], belong[i][j] = -1;
+    cin >> q;
 }
 
 void prepare()
@@ -112,72 +145,42 @@ void prepare()
     FOR(y, 1, n)
     if (belong[x][y] == -1)
     {
-        prepareArea(c[x][y]);
-        dfs(x, y);
-        best = max(best, sizP[area - 1]);
+        area ++;
+        reg.pb(region(c[x][y]));
+        dfsAddPoint(x, y);
+        best = max(best, reg[area - 1].sizeP);
     }
+
     FOR(u, 0, area - 1)
     {
-        int x = startP[u].F;
-        int y = startP[u].S;
-        dfs(x, y, u);
+        int x = reg[u].startP.F;
+        int y = reg[u].startP.S;
+        dfsAddEdge(x, y, u);
     }
+
     co = area;
 }
 
-int getRoot(int x)
-{
-    if (root[x] == x)
-        return x;
-    return (root[x] = getRoot(root[x]));
-}
-
-void merging(int a, int b)
-{
-    if (sizP[a] < sizP[b])
-        swap(a, b);
-    root[b] = a;
-    for(pair<int, int> x = startP[b]; x.F; x = nextP[x.F][x.S])
-        belong[x.F][x.S] = a;
-
-    pair<int, int> x1 = lastP[a];
-    pair<int, int> x2 = startP[b];
-    nextP[x1.F][x1.S] = x2;
-    lastP[a] = lastP[b];
-    sizP[a] += sizP[b];
-
-    if (lastV[b] != -1)
-    {
-        int v1 = lastV[a];
-        int v2 = startV[b];
-        if (v1 == -1)
-            startV[a] = v2;
-        else
-            nextV[v1] = v2;
-        lastV[a] = lastV[b];
-    }
-}
+int temp[mn2];
 
 void query(int u, char c)
 {
-    if (c == charArea[u])
+    if (reg[u].character == c)
         return;
-    charArea[u] = c;
-    mark[u] = ++ co;
-    r = 0;
-    int sumSz = 0;
-    for(int x = startV[u]; x != -1; x = nextV[x])
+    reg[u].character = c;
+    reg[u].mark = ++ co;
+    int r = 0, sumSz = 0;
+    for(int x = reg[u].startV; x != -1; x = nextV[x])
     {
         int v = getRoot(val[x]);
-        if (mark[v] != co)
-        {
-            mark[v] = co;
-            temp[++ r] = v;
-            sumSz += sizP[v];
-        }
+        if (reg[v].mark == co)
+            continue;
+        reg[v].mark = co;
+        temp[++ r] = v;
+        sumSz += reg[v].sizeP;
     }
-    area -= r, best = max(best, sizP[u] + sumSz);
-    startV[u] = lastV[u] = -1;
+    area -= r, best = max(best, reg[u].sizeP + sumSz);
+    reg[u].startV = reg[u].lastV = -1;
     FOR(i, 1, r)
         merging(getRoot(u), temp[i]);
 }
