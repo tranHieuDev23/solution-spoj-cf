@@ -46,8 +46,8 @@ void printInt(int x)
 
 void pushing(int id)
 {
-    deq[++ r] = dp[id];
-    while(deq[l] < dp[id])
+    deq[++ r] = id;
+    while(dp[deq[l]] < dp[id])
         l ++;
 }
 
@@ -61,9 +61,11 @@ void setup()
     FOR(i, 1, n)
     {
         readInt(&a);
+        while(l <= r && deq[l] < i - l2)
+            l ++;
         if (i > l1)
             pushing(i - l1);
-        dp[i] = deq[l] + a;
+        dp[i] = dp[deq[l]] + a;
         ans = max(ans, dp[i]);
     }
     printInt(ans);
